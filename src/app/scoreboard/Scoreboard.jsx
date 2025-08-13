@@ -48,8 +48,8 @@ export default function Scoreboard({ gameId = "default" }) {
   };
 
   return (
-    <div style={{ display: "grid", gap: 16, padding: 24 }}>
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+    <div style={{ display: "grid", gap: 16, padding: 24, gridTemplateRows: "1fr auto auto", height: "100%" }}>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, alignItems: "stretch", minHeight: 0 }}>
         <TeamScore
           label="Home"
           value={score.home}
@@ -84,6 +84,9 @@ function TeamScore({ label, value, onAdd, onSub }) {
         gap: 12,
         alignItems: "center",
         justifyItems: "center",
+        background: label === "Home" ? "#FF7E76" : "#91CAFF",
+        minHeight: 0,
+        height: "100%",
       }}
     >
       <div style={{ fontSize: 18, opacity: 0.85 }}>{label}</div>

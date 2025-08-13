@@ -1,11 +1,51 @@
 "use client";
 
-import { useMemo, useEffect, useState } from "react";
-import { useParams } from "next/navigation";
 import { getRealtimeDatabase } from "@/lib/firebase";
+import Box from "@mui/material/Box";
+import { styled } from "@mui/material/styles";
+import Typography from "@mui/material/Typography";
 import { onValue, ref } from "firebase/database";
+import { useParams } from "next/navigation";
+import { useEffect, useMemo, useState } from "react";
 
 export const dynamic = "force-dynamic";
+
+const Root = styled(Box)({
+  minHeight: "100svh",
+  display: "grid",
+  gridTemplateRows: "auto 1fr auto",
+  gap: 16,
+  padding: 24,
+  textAlign: "center",
+});
+
+const Grid = styled(Box)({
+  display: "grid",
+  gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
+  gap: 16,
+  alignItems: "stretch",
+  minHeight: 0,
+});
+
+const PanelCard = styled(Box)({
+  borderRadius: "10rem",
+  padding: 24,
+  color: "#fff",
+  display: "grid",
+  placeItems: "center",
+  height: "100%",
+  minWidth: 0,
+});
+
+const BigScore = styled(Typography)({
+  fontSize: "clamp(6rem, 18vw, 20rem)",
+  fontWeight: 800,
+  lineHeight: 1,
+  whiteSpace: "nowrap",
+  overflow: "hidden",
+  textOverflow: "ellipsis",
+  fontVariantNumeric: "tabular-nums",
+});
 
 export default function Viewer() {
   const params = useParams();
@@ -24,27 +64,22 @@ export default function Viewer() {
   }, [gameRef]);
 
   return (
-    <div style={{ display: "grid", gap: 24, padding: 24, textAlign: "center" }}>
-      <h1 style={{ fontSize: 28 }}>Scoreboard</h1>
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+    <Root>
+      <Typography component="h1" sx={{ fontSize: 28, m: 0 }}>Scoreboard</Typography>
+      <Grid>
         <Panel label="Home" value={score.home} />
         <Panel label="Away" value={score.away} />
-      </div>
-      <small style={{ opacity: 0.7 }}>Game: {gameId}</small>
-    </div>
+      </Grid>
+      <Typography component="small" sx={{ opacity: 0.7 }}>Game: {gameId}</Typography>
+    </Root>
   );
 }
 
 function Panel({ label, value }) {
   return (
-    <div style={{
-      border: "1px solid #444",
-      borderRadius: 12,
-      padding: 24,
-    }}>
-      <div style={{ fontSize: 18, opacity: 0.85 }}>{label}</div>
-      <div style={{ fontSize: 96, fontWeight: 800, lineHeight: 1 }}>{value}</div>
-    </div>
+    <PanelCard sx={{ background: label === "Home" ? "#FF7E76" : "#91CAFF" }}>
+      <BigScore component="div">{value}</BigScore>
+    </PanelCard>
   );
 }
 
