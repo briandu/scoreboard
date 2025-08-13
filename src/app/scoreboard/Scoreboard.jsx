@@ -2,37 +2,50 @@
 
 import { getRealtimeDatabase } from "@/lib/firebase";
 import { onValue, ref, set, update } from "firebase/database";
-import { useEffect, useMemo, useState, type CSSProperties } from "react";
+import { useEffect, useMemo, useState } from "react";
 
-type ScoreState = {
-  home: number;
-  away: number;
-  lastUpdatedAt: number;
-};
+const DEFAULT_STATE = { home: 0, away: 0, lastUpdatedAt: Date.now() };
 
-const DEFAULT_STATE: ScoreState = { home: 0, away: 0, lastUpdatedAt: Date.now() };
-
-export default function Scoreboard({ gameId = "default" }: { gameId?: string }) {
+export default function Scoreboard({ gameId = "default" }) {
   const db = useMemo(() => getRealtimeDatabase(), []);
   const gameRef = useMemo(() => ref(db, `games/${gameId}`), [db, gameId]);
 
-  const [score, setScore] = useState<ScoreState>(DEFAULT_STATE);
+  const [score, setScore] = useState(DEFAULT_STATE);
 
   useEffect(() => {
-    const unsub = onValue(gameRef, (snap) => {
-      const val = snap.val() as ScoreState | null;
-      if (val) setScore(val);
-      else set(gameRef, DEFAULT_STATE);
+    const unsub = onValue(gameRef, async (snap) => {
+      const val = snap.val();
+      if (val) {
+        setScore(val);
+      } else {
+        try {
+          await set(gameRef, DEFAULT_STATE);
+        } catch (err) {
+          console.error("Failed to initialize score:", err);
+        }
+      }
     });
     return () => unsub();
   }, [gameRef]);
 
-  const adjust = (key: "home" | "away", delta: number) => {
+  const adjust = async (key, delta) => {
     const next = Math.max(0, (score[key] ?? 0) + delta);
-    update(gameRef, { [key]: next, lastUpdatedAt: Date.now() });
+    try {
+      await update(gameRef, { [key]: next, lastUpdatedAt: Date.now() });
+    } catch (err) {
+      console.error("Failed to update score:", err);
+      alert("Failed to update score. Check Firebase Realtime Database rules and env variables.");
+    }
   };
 
-  const reset = () => set(gameRef, { ...DEFAULT_STATE, lastUpdatedAt: Date.now() });
+  const reset = async () => {
+    try {
+      await set(gameRef, { ...DEFAULT_STATE, lastUpdatedAt: Date.now() });
+    } catch (err) {
+      console.error("Failed to reset score:", err);
+      alert("Failed to reset score. Check Firebase Realtime Database rules and env variables.");
+    }
+  };
 
   return (
     <div style={{ display: "grid", gap: 16, padding: 24 }}>
@@ -60,17 +73,7 @@ export default function Scoreboard({ gameId = "default" }: { gameId?: string }) 
   );
 }
 
-function TeamScore({
-  label,
-  value,
-  onAdd,
-  onSub,
-}: {
-  label: string;
-  value: number;
-  onAdd: () => void;
-  onSub: () => void;
-}) {
+function TeamScore({ label, value, onAdd, onSub }) {
   return (
     <div
       style={{
@@ -97,7 +100,7 @@ function TeamScore({
   );
 }
 
-const buttonStyle: CSSProperties = {
+const buttonStyle = {
   fontSize: 18,
   padding: "12px 16px",
   borderRadius: 10,

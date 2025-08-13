@@ -1,11 +1,11 @@
 "use client";
 
-import { getApps, initializeApp, type FirebaseApp } from "firebase/app";
+import { getApps, initializeApp } from "firebase/app";
 import { getDatabase } from "firebase/database";
 
-let appInstance: FirebaseApp | null = null;
+let appInstance = null;
 
-export function getFirebaseApp(): FirebaseApp {
+export function getFirebaseApp() {
   if (appInstance) return appInstance;
 
   const config = {

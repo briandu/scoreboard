@@ -1,29 +1,23 @@
 "use client";
 
+import { useMemo, useEffect, useState } from "react";
+import { useParams } from "next/navigation";
 import { getRealtimeDatabase } from "@/lib/firebase";
 import { onValue, ref } from "firebase/database";
-import { useParams } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
-
-type ScoreState = {
-  home: number;
-  away: number;
-  lastUpdatedAt: number;
-};
 
 export const dynamic = "force-dynamic";
 
 export default function Viewer() {
-  const params = useParams<{ gameId: string }>();
-  const gameId = params?.gameId ?? "default";
+  const params = useParams();
+  const gameId = (params && params.gameId) || "default";
   const db = useMemo(() => getRealtimeDatabase(), []);
   const gameRef = useMemo(() => ref(db, `games/${gameId}`), [db, gameId]);
 
-  const [score, setScore] = useState<ScoreState>({ home: 0, away: 0, lastUpdatedAt: Date.now() });
+  const [score, setScore] = useState({ home: 0, away: 0, lastUpdatedAt: Date.now() });
 
   useEffect(() => {
     const unsub = onValue(gameRef, (snap) => {
-      const val = snap.val() as ScoreState | null;
+      const val = snap.val();
       if (val) setScore(val);
     });
     return () => unsub();
@@ -41,7 +35,7 @@ export default function Viewer() {
   );
 }
 
-function Panel({ label, value }: { label: string; value: number }) {
+function Panel({ label, value }) {
   return (
     <div style={{
       border: "1px solid #444",
